@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "23hrYKuNlsm39Tx7dlSCcekDJQSAPu1BnxlJnvCBaBJnIrunqftbsEVtyzqp2/ZZlj+KatB8PEWGW05oMsO4QQ==",
+  "success": true,
+  "projectFilePath": "C:\\Users\\gusjg\\source\\repos\\HFFlib\\HFFlib\\HFFlib.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\gusjg\\.nuget\\packages\\microsoft.toolkit.highperformance\\7.1.2\\microsoft.toolkit.highperformance.7.1.2.nupkg.sha512",
+    "C:\\Users\\gusjg\\.nuget\\packages\\raylib-cslo\\4.0.0\\raylib-cslo.4.0.0.nupkg.sha512"
+  ],
+  "logs": []
+}

@@ -1,0 +1,208 @@
+{
+  "version": 3,
+  "targets": {
+    "net5.0": {
+      "Microsoft.Toolkit.HighPerformance/7.1.2": {
+        "type": "package",
+        "compile": {
+          "lib/net5.0/Microsoft.Toolkit.HighPerformance.dll": {}
+        },
+        "runtime": {
+          "lib/net5.0/Microsoft.Toolkit.HighPerformance.dll": {}
+        }
+      },
+      "Raylib-CsLo/4.0.0": {
+        "type": "package",
+        "dependencies": {
+          "Microsoft.Toolkit.HighPerformance": "7.1.2"
+        },
+        "compile": {
+          "lib/netstandard2.1/Raylib-CsLo.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard2.1/Raylib-CsLo.dll": {}
+        },
+        "contentFiles": {
+          "contentFiles/any/netstandard2.1/raylib.dll": {
+            "buildAction": "Content",
+            "codeLanguage": "any",
+            "copyToOutput": false
+          }
+        },
+        "runtimeTargets": {
+          "runtimes/linux-x64/native/libraylib.so": {
+            "assetType": "native",
+            "rid": "linux-x64"
+          },
+          "runtimes/osx-x64/native/libraylib.dylib": {
+            "assetType": "native",
+            "rid": "osx-x64"
+          },
+          "runtimes/win-x64/native/raylib.dll": {
+            "assetType": "native",
+            "rid": "win-x64"
+          },
+          "runtimes/win-x64/native/raylib.pdb": {
+            "assetType": "native",
+            "rid": "win-x64"
+          },
+          "runtimes/win-x86/native/physac.dll": {
+            "assetType": "native",
+            "rid": "win-x86"
+          },
+          "runtimes/win-x86/native/physac.pdb": {
+            "assetType": "native",
+            "rid": "win-x86"
+          },
+          "runtimes/win-x86/native/raygui.dll": {
+            "assetType": "native",
+            "rid": "win-x86"
+          },
+          "runtimes/win-x86/native/raygui.pdb": {
+            "assetType": "native",
+            "rid": "win-x86"
+          },
+          "runtimes/win-x86/native/raylib.dll": {
+            "assetType": "native",
+            "rid": "win-x86"
+          },
+          "runtimes/win-x86/native/raylib.pdb": {
+            "assetType": "native",
+            "rid": "win-x86"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "Microsoft.Toolkit.HighPerformance/7.1.2": {
+      "sha512": "cezzRky0BUJyYmSrcQUcX8qAv90JfUwCqWEbqfWZLHyeANo9/LWgW6y50pqbyc8r8SPXVsu2GNH98fB3VxrnvA==",
+      "type": "package",
+      "path": "microsoft.toolkit.highperformance/7.1.2",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "Icon.png",
+        "License.md",
+        "ThirdPartyNotices.txt",
+        "lib/net5.0/Microsoft.Toolkit.HighPerformance.dll",
+        "lib/net5.0/Microsoft.Toolkit.HighPerformance.pdb",
+        "lib/net5.0/Microsoft.Toolkit.HighPerformance.xml",
+        "lib/netcoreapp2.1/Microsoft.Toolkit.HighPerformance.dll",
+        "lib/netcoreapp2.1/Microsoft.Toolkit.HighPerformance.pdb",
+        "lib/netcoreapp2.1/Microsoft.Toolkit.HighPerformance.xml",
+        "lib/netcoreapp3.1/Microsoft.Toolkit.HighPerformance.dll",
+        "lib/netcoreapp3.1/Microsoft.Toolkit.HighPerformance.pdb",
+        "lib/netcoreapp3.1/Microsoft.Toolkit.HighPerformance.xml",
+        "lib/netstandard1.4/Microsoft.Toolkit.HighPerformance.dll",
+        "lib/netstandard1.4/Microsoft.Toolkit.HighPerformance.pdb",
+        "lib/netstandard1.4/Microsoft.Toolkit.HighPerformance.xml",
+        "lib/netstandard2.0/Microsoft.Toolkit.HighPerformance.dll",
+        "lib/netstandard2.0/Microsoft.Toolkit.HighPerformance.pdb",
+        "lib/netstandard2.0/Microsoft.Toolkit.HighPerformance.xml",
+        "lib/netstandard2.1/Microsoft.Toolkit.HighPerformance.dll",
+        "lib/netstandard2.1/Microsoft.Toolkit.HighPerformance.pdb",
+        "lib/netstandard2.1/Microsoft.Toolkit.HighPerformance.xml",
+        "microsoft.toolkit.highperformance.7.1.2.nupkg.sha512",
+        "microsoft.toolkit.highperformance.nuspec"
+      ]
+    },
+    "Raylib-CsLo/4.0.0": {
+      "sha512": "e3WZS64keUEjRog96hB79Zvf/Ym3X0W3QKXp1CDarerQKLBjUIGY9R0l06KHb8pPIVNcWx9m0D6bJWWN68m7Eg==",
+      "type": "package",
+      "path": "raylib-cslo/4.0.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "README.md",
+        "content/raylib.dll",
+        "contentFiles/any/netstandard2.1/raylib.dll",
+        "lib/netstandard2.1/Raylib-CsLo.dll",
+        "lib/netstandard2.1/Raylib-CsLo.pdb",
+        "lib/netstandard2.1/Raylib-CsLo.xml",
+        "raylib-cslo.4.0.0.nupkg.sha512",
+        "raylib-cslo.nuspec",
+        "raylib-cslo_128x128.png",
+        "runtimes/linux-x64/native/libraylib.so",
+        "runtimes/osx-x64/native/libraylib.dylib",
+        "runtimes/readme.md",
+        "runtimes/win-x64/native/raylib.dll",
+        "runtimes/win-x64/native/raylib.pdb",
+        "runtimes/win-x86/native/physac.dll",
+        "runtimes/win-x86/native/physac.pdb",
+        "runtimes/win-x86/native/raygui.dll",
+        "runtimes/win-x86/native/raygui.pdb",
+        "runtimes/win-x86/native/raylib.dll",
+        "runtimes/win-x86/native/raylib.pdb"
+      ]
+    }
+  },
+  "projectFileDependencyGroups": {
+    "net5.0": [
+      "Raylib-CsLo >= 4.0.0"
+    ]
+  },
+  "packageFolders": {
+    "C:\\Users\\gusjg\\.nuget\\packages\\": {}
+  },
+  "project": {
+    "version": "1.0.0",
+    "restore": {
+      "projectUniqueName": "C:\\Users\\gusjg\\source\\repos\\HFFlib\\HFFlib\\HFFlib.csproj",
+      "projectName": "HFFlib",
+      "projectPath": "C:\\Users\\gusjg\\source\\repos\\HFFlib\\HFFlib\\HFFlib.csproj",
+      "packagesPath": "C:\\Users\\gusjg\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\gusjg\\source\\repos\\HFFlib\\HFFlib\\obj\\",
+      "projectStyle": "PackageReference",
+      "configFilePaths": [
+        "C:\\Users\\gusjg\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+      ],
+      "originalTargetFrameworks": [
+        "net5.0"
+      ],
+      "sources": {
+        "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+        "https://api.nuget.org/v3/index.json": {}
+      },
+      "frameworks": {
+        "net5.0": {
+          "targetAlias": "net5.0",
+          "projectReferences": {}
+        }
+      },
+      "warningProperties": {
+        "warnAsError": [
+          "NU1605"
+        ]
+      }
+    },
+    "frameworks": {
+      "net5.0": {
+        "targetAlias": "net5.0",
+        "dependencies": {
+          "Raylib-CsLo": {
+            "target": "Package",
+            "version": "[4.0.0, )"
+          }
+        },
+        "imports": [
+          "net461",
+          "net462",
+          "net47",
+          "net471",
+          "net472",
+          "net48"
+        ],
+        "assetTargetFallback": true,
+        "warn": true,
+        "frameworkReferences": {
+          "Microsoft.NETCore.App": {
+            "privateAssets": "all"
+          }
+        },
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\5.0.400\\RuntimeIdentifierGraph.json"
+      }
+    }
+  }
+}
