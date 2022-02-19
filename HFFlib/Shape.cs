@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -37,7 +38,8 @@ namespace HFFlib
     /// A rectangle whose top left point is its position, 
     /// and whose bottom right point is its position plus its dimensions.
     /// </summary>
-    public struct Rectangle : IShape
+    [Serializable]
+    public struct Rectangle : IShape, ISerializable
     {
         /// <summary>
         /// Top left point of rectangle
@@ -71,6 +73,12 @@ namespace HFFlib
 
             this.position = new Vector2(x, y);
             this.dimensions = new Vector2(width, height);
+        }
+
+        public Rectangle(SerializationInfo info, StreamingContext context)
+        {
+            position = new(info.GetSingle("x"), info.GetSingle("y"));
+            dimensions = new(info.GetSingle("width"), info.GetSingle("height"));
         }
 
         /// <summary>
@@ -196,12 +204,21 @@ namespace HFFlib
             //find amounts by which to push out
             return new(x, y);
         }
+
+        public void GetObjectData(SerializationInfo info, StreamingContext context)
+        {
+            info.AddValue("x", X);
+            info.AddValue("y", Y);
+            info.AddValue("width", Width);
+            info.AddValue("height", Height);
+        }
     }
 
     /// <summary>
     /// A circle with a center and a radius. 
     /// </summary>
-    public struct Circle : IShape
+    [Serializable]
+    public struct Circle : IShape, ISerializable
     {
         /// <summary>
         /// The circle's center
@@ -228,6 +245,12 @@ namespace HFFlib
 
             this.center = new(x, y);
             this.radius = radius;
+        }
+
+        public Circle(SerializationInfo info, StreamingContext context)
+        {
+            center = new(info.GetSingle("x"), info.GetSingle("y"));
+            radius = info.GetSingle("radius");
         }
 
         /// <summary>
@@ -293,9 +316,17 @@ namespace HFFlib
         {
             return capsule.Intersects(this);
         }
+
+        public void GetObjectData(SerializationInfo info, StreamingContext context)
+        {
+            info.AddValue("x", X);
+            info.AddValue("y", Y);
+            info.AddValue("radius", Radius);
+        }
     }
 
-    public struct Triangle : IShape
+    [Serializable]
+    public struct Triangle : IShape, ISerializable
     {
         /// <summary>
         /// The bounds of the triangle
@@ -336,6 +367,12 @@ namespace HFFlib
 
             this.bounds = new(x, y, width, height);
             this.emptyQuadrant = (byte)emptyQuadrant;
+        }
+
+        public Triangle(SerializationInfo info, StreamingContext context)
+        {
+            bounds = (Rectangle)info.GetValue("bounds", typeof(Rectangle));
+            emptyQuadrant = info.GetByte("emptyQuadrant");
         }
 
         public Rectangle Bounds => bounds;
@@ -427,6 +464,12 @@ namespace HFFlib
             return xWithin && yWithin;
         }
 
+        public void GetObjectData(SerializationInfo info, StreamingContext context)
+        {
+            info.AddValue("bounds", bounds, typeof(Rectangle));
+            info.AddValue("emptyQuadrant", emptyQuadrant);
+        }
+
         public bool Intersects(Circle circle)
         {
             //check if circle center is inside
@@ -451,7 +494,8 @@ namespace HFFlib
     /// <summary>
     /// A line segment with two points
     /// </summary>
-    public struct LineSegment : IShape
+    [Serializable]
+    public struct LineSegment : IShape, ISerializable
     {
         /// <summary>
         /// The first point
@@ -479,6 +523,12 @@ namespace HFFlib
         {
             pointA = new(p1.X, p1.Y);
             pointB = new(p2.X, p2.Y);
+        }
+
+        public LineSegment(SerializationInfo info, StreamingContext context)
+        {
+            pointA = new(info.GetSingle("x1"), info.GetSingle("y1"));
+            pointB = new(info.GetSingle("x2"), info.GetSingle("y2"));
         }
 
         /// <summary>
@@ -640,9 +690,18 @@ namespace HFFlib
                 Intersects(new LineSegment(rect.X, bottomRight.Y, bottomRight.X, bottomRight.Y)) ||
                 Intersects(new LineSegment(bottomRight.X, bottomRight.Y, bottomRight.X, rect.Y));
         }
+
+        public void GetObjectData(SerializationInfo info, StreamingContext context)
+        {
+            info.AddValue("x1", pointA.X);
+            info.AddValue("y1", pointA.Y);
+            info.AddValue("x2", pointB.X);
+            info.AddValue("y2", pointB.Y);
+        }
     }
 
-    public struct Capsule : IShape
+    [Serializable]
+    public struct Capsule : IShape, ISerializable
     {
         private LineSegment line;
         private float radius;
@@ -651,6 +710,12 @@ namespace HFFlib
         {
             this.line = new(x1, y1, x2, y2);
             this.radius = radius;
+        }
+
+        public Capsule(SerializationInfo info, StreamingContext context)
+        {
+            line = (LineSegment)info.GetValue("line", typeof(LineSegment));
+            radius = info.GetSingle("radius");
         }
 
         public LineSegment Line => line;
@@ -756,6 +821,12 @@ namespace HFFlib
             //capsule line intersects rect
             LineSegment[] lines = GetLines();
             return lines[0].Intersects(rect) || lines[1].Intersects(rect);
+        }
+
+        public void GetObjectData(SerializationInfo info, StreamingContext context)
+        {
+            info.AddValue("line", line, typeof(LineSegment));
+            info.AddValue("radius", radius);
         }
     }
 }
