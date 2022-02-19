@@ -36,6 +36,8 @@ namespace HFFlib
         }
 
         public abstract bool Intersects(Hitbox other);
+
+        public abstract IShape Shape { get; set; }
     }
 
     [Serializable]
@@ -58,6 +60,22 @@ namespace HFFlib
     public class SolidRect : SolidHitbox
     {
         public Rectangle Rect;
+        public override IShape Shape
+        {
+            get => Rect;
+            set 
+            { 
+                if(value is Rectangle rect) 
+                {
+                    Rect = rect;
+                } 
+                else
+                {
+                    throw new InvalidCastException("Cannot implicitly convert " +
+                        value.GetType().ToString() + "to Rectangle");
+                }
+            }
+        }
 
         public SolidRect(float x, float y, float width, float height) : base()
         {
@@ -100,6 +118,22 @@ namespace HFFlib
     public class SolidTri : SolidHitbox
     {
         public Triangle Tri;
+        public override IShape Shape
+        {
+            get => Tri;
+            set
+            {
+                if (value is Triangle tri)
+                {
+                    Tri = tri;
+                }
+                else
+                {
+                    throw new InvalidCastException("Cannot implicitly convert " +
+                        value.GetType().ToString() + "to Triangle");
+                }
+            }
+        }
 
         public SolidTri(float x, float y, float width, float height, int emptyQuadrant) : base()
         {
@@ -142,6 +176,22 @@ namespace HFFlib
     public class CollisionBubble : Hitbox
     {
         public Circle Bubble;
+        public override IShape Shape
+        {
+            get => Bubble;
+            set
+            {
+                if (value is Circle circle)
+                {
+                    Bubble = circle;
+                }
+                else
+                {
+                    throw new InvalidCastException("Cannot implicitly convert " +
+                        value.GetType().ToString() + "to Circle");
+                }
+            }
+        }
 
         public CollisionBubble(float x, float y, float radius) : base()
         {
@@ -198,6 +248,22 @@ namespace HFFlib
     public class HitBubble : Hitbox
     {
         public Circle Bubble;
+        public override IShape Shape
+        {
+            get => Bubble;
+            set
+            {
+                if (value is Circle circle)
+                {
+                    Bubble = circle;
+                }
+                else
+                {
+                    throw new InvalidCastException("Cannot implicitly convert " +
+                        value.GetType().ToString() + "to Circle");
+                }
+            }
+        }
 
         public HitBubble(float x, float y, float radius, string type) : base()
         {
@@ -240,6 +306,22 @@ namespace HFFlib
     public class HitCapsule : Hitbox
     {
         public Capsule Capsule;
+        public override IShape Shape
+        {
+            get => Capsule;
+            set
+            {
+                if (value is Capsule capsule)
+                {
+                    Capsule = capsule;
+                }
+                else
+                {
+                    throw new InvalidCastException("Cannot implicitly convert " +
+                        value.GetType().ToString() + "to Capsule");
+                }
+            }
+        }
 
         public HitCapsule(float x1, float y1, float x2, float y2, float radius, string type) : base()
         {
@@ -284,20 +366,25 @@ namespace HFFlib
     public class HitboxData : ISerializable
     {
         public string Type;
+        public Vector2 Offset;
 
         public HitboxData()
         {
-
+            Type = "";
+            Offset = Vector2.Zero;
         }
 
         public HitboxData(SerializationInfo info, StreamingContext context)
         {
             Type = info.GetString("type");
+            Offset = new(info.GetSingle("xoffset"), info.GetSingle("yoffset"));
         }
 
-        public void GetObjectData(SerializationInfo info, StreamingContext context)
+        public virtual void GetObjectData(SerializationInfo info, StreamingContext context)
         {
             info.AddValue("type", Type, typeof(string));
+            info.AddValue("xoffset", Offset.X);
+            info.AddValue("yoffset", Offset.Y);
         }
     }
 }

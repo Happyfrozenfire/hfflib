@@ -75,6 +75,12 @@ namespace HFFlib
             this.dimensions = new Vector2(width, height);
         }
 
+        public Rectangle(Vector2 position, Vector2 dimensions)
+        {
+            this.position = new(position.X, position.Y);
+            this.dimensions = new(dimensions.X, dimensions.Y);
+        }
+
         public Rectangle(SerializationInfo info, StreamingContext context)
         {
             position = new(info.GetSingle("x"), info.GetSingle("y"));
@@ -247,6 +253,18 @@ namespace HFFlib
             this.radius = radius;
         }
 
+        public Circle(Vector2 center, float radius)
+        {
+            if (radius <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(radius),
+                    "radius must be greater than 0");
+            }
+
+            this.center = new(center.X, center.Y);
+            this.radius = radius;
+        }
+
         public Circle(SerializationInfo info, StreamingContext context)
         {
             center = new(info.GetSingle("x"), info.GetSingle("y"));
@@ -366,6 +384,54 @@ namespace HFFlib
             }
 
             this.bounds = new(x, y, width, height);
+            this.emptyQuadrant = (byte)emptyQuadrant;
+        }
+
+        public Triangle(Vector2 position, Vector2 dimensions, int emptyQuadrant)
+        {
+            if (dimensions.X <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(dimensions),
+                    "width must be greater than 0");
+            }
+
+            if (dimensions.Y <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(dimensions),
+                    "height must be greater than 0");
+            }
+
+            if (emptyQuadrant < 1 || emptyQuadrant > 4)
+            {
+                throw new ArgumentOutOfRangeException(nameof(emptyQuadrant),
+                    "emptyQuadrant must be between 1 and 4, inclusive");
+            }
+
+            this.bounds = new(position, dimensions);
+            this.emptyQuadrant = (byte)emptyQuadrant;
+        }
+
+        public Triangle(Rectangle bounds, int emptyQuadrant)
+        {
+            if (bounds.Width <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(bounds),
+                    "width must be greater than 0");
+            }
+
+            if (bounds.Height <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(bounds),
+                    "height must be greater than 0");
+            }
+
+            if (emptyQuadrant < 1 || emptyQuadrant > 4)
+            {
+                throw new ArgumentOutOfRangeException(nameof(emptyQuadrant),
+                    "emptyQuadrant must be between 1 and 4, inclusive");
+            }
+
+            this.bounds = bounds;
             this.emptyQuadrant = (byte)emptyQuadrant;
         }
 
@@ -709,6 +775,18 @@ namespace HFFlib
         public Capsule(float x1, float y1, float x2, float y2, float radius)
         {
             this.line = new(x1, y1, x2, y2);
+            this.radius = radius;
+        }
+
+        public Capsule(Vector2 pointA, Vector2 pointB, float radius)
+        {
+            this.line = new(pointA, pointB);
+            this.radius = radius;
+        }
+
+        public Capsule(LineSegment line, float radius)
+        {
+            this.line = line;
             this.radius = radius;
         }
 

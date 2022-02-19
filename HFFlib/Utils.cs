@@ -333,5 +333,22 @@ namespace HFFlib
 
             return false;
         }
+
+        public static Rectangle AggregateBoundingBoxes(ICollection<IShape> shapes)
+        {
+            Vector2 minPoint = new(float.PositiveInfinity);
+            Vector2 maxPoint = new(float.NegativeInfinity);
+
+            foreach(IShape shape in shapes)
+            {
+                Rectangle bounds = shape.Bounds;
+                minPoint = Vector2.Min(minPoint, bounds.TopLeft);
+                maxPoint = Vector2.Max(maxPoint, bounds.BottomRight);
+            }
+
+            Vector2 dims = maxPoint - minPoint;
+
+            return new(minPoint.X, minPoint.Y, dims.X, dims.Y);
+        }
     }
 }
