@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -9,19 +10,16 @@ namespace HFFlib
 {
     public abstract class Hitbox
     {
-        public enum Type
+        public HitboxData Data;
+
+        protected Hitbox()
         {
-            SOLID,
-            COLLISION,
-            HIT,
-            OTHER
+            Data = new();
         }
 
-        public Type type;
-
-        protected Hitbox(Type type)
+        protected Hitbox(HitboxData data)
         {
-            this.type = type;
+            this.Data = data;
         }
 
         public abstract Rectangle GetBoundingBox();
@@ -30,9 +28,9 @@ namespace HFFlib
 
     public abstract class SolidHitbox : Hitbox
     {
-        protected SolidHitbox() : base(Type.SOLID)
+        protected SolidHitbox() : base()
         {
-
+            Data.Type = "solid";
         }
 
         public abstract Vector2 Diff(CollisionBubble collision);
@@ -102,8 +100,9 @@ namespace HFFlib
     {
         public Circle Bubble;
 
-        public CollisionBubble(float x, float y, float radius) : base(Type.COLLISION)
+        public CollisionBubble(float x, float y, float radius) : base()
         {
+            Data.Type = "collision";
             Bubble = new(x, y, radius);
         }
 
@@ -145,8 +144,9 @@ namespace HFFlib
     {
         public Circle Bubble;
 
-        public HitBubble(float x, float y, float radius) : base(Type.HIT)
+        public HitBubble(float x, float y, float radius, string type) : base()
         {
+            Data.Type = type;
             Bubble = new(x, y, radius);
         }
 
@@ -174,8 +174,9 @@ namespace HFFlib
     {
         public Capsule Capsule;
 
-        public HitCapsule(float x1, float y1, float x2, float y2, float radius) : base(Type.HIT)
+        public HitCapsule(float x1, float y1, float x2, float y2, float radius, string type) : base()
         {
+            Data.Type = type;
             this.Capsule = new(x1, y1, x2, y2, radius);
         }
 
@@ -196,6 +197,29 @@ namespace HFFlib
             }
 
             return false;
+        }
+    }
+
+
+
+    [Serializable]
+    public class HitboxData : ISerializable
+    {
+        public string Type;
+
+        public HitboxData()
+        {
+
+        }
+
+        public HitboxData(SerializationInfo info, StreamingContext context)
+        {
+            Type = info.GetString("type");
+        }
+
+        public void GetObjectData(SerializationInfo info, StreamingContext context)
+        {
+            info.AddValue("type", Type, typeof(string));
         }
     }
 }
