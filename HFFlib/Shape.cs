@@ -169,7 +169,7 @@ namespace HFFlib
         /// <returns>An immutable copy of this Rectangle as a Rectangle instance</returns>
         public Rectangle Clone() => (Rectangle)CloneShape();
         public Rectangle Bounds => Clone();
-        public Vector2 Center => position - (dimensions / 2);
+        public Vector2 Center => position + (dimensions / 2);
 
         public Vector2[] Points => new Vector2[] { TopRight, TopLeft,
             BottomLeft, BottomRight };
@@ -518,12 +518,22 @@ namespace HFFlib
 
         public IShape CloneShape() => new Triangle(X, Y, Width, Height, emptyQuadrant);
 
+        /// <summary>
+        /// This code is such spaghetti-ass bullshit. Seriously, why do I only need y>mx+b for QI? 
+        /// If anything, I should need it for both QI and QII, but somehow, QII works like QIII and QIV. 
+        /// What the actual shitbiscuits
+        /// </summary>
+        /// <param name="point"></param>
+        /// <returns></returns>
         public bool Contains(Vector2 point)
         {
             float slope = Slope;
+            //y=mx+b; slope=m
             Vector2 bottomRight = bounds.BottomRight;
             bool xWithin = X < point.X && point.X < bottomRight.X;
-            bool yWithin = (emptyQuadrant < 3) ?
+            //if q1 or q2: y > mx+b
+            //else: y < mx + b
+            bool yWithin = (emptyQuadrant == 1) ?
                 (point.Y > slope * (point.X - X) + Y && point.Y < bottomRight.Y) :
                 (point.Y < slope * (point.X - X) + Y && point.Y > Y);
 

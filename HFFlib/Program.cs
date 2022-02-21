@@ -8,9 +8,9 @@ namespace HFFlib
     {
         static Camera2D camera = new();
 
-        static SolidRect rect = new(50, 50, 30, 40);
-        static CollisionBubble circle = new(100, 100, 20);
-        static SolidTri tri = new(150, 150, 50, 20, 4);
+        static SolidRect rect = new(300, 300, 100, 100);
+        static CollisionBubble circle = new(100, 100, 10);
+        static SolidTri tri = new(500, 200, 100, 50, 4);
         static LineSegment line = new(200, 200, 250, 250);
         static Capsule capsule = new(300, 300, 350, 350, 40);
         static bool intersecting = false;

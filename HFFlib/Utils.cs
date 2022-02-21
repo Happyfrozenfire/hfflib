@@ -100,79 +100,7 @@ namespace HFFlib
             Vector2 pushRect;
 
             //pushRect
-            switch(emptyQuadrant)
-            {
-                case 1:
-                    Vector2 corner = triBounds.BottomLeft;
-                    if (center.X < corner.X && center.Y > corner.Y)
-                    {
-                        double atan2 = Math.Atan2(corner.Y - center.Y, corner.X - center.X);
-
-                        pushRect = corner - new Vector2((float)(center.X + circle.Radius * Math.Cos(atan2)),
-                            (float)(center.Y + circle.Radius * Math.Sin(atan2)));
-                    }
-                    else
-                    {
-                        pushRect = FlattenAlongLesserDimension(new Vector2(
-                        tri.X - circleBottomRight.X,
-                        triBottomRight.Y - circleBounds.Y));
-                    }
-                    break;
-
-                case 2:
-                    corner = triBottomRight;
-                    if (center.X > corner.X && center.Y > corner.Y)
-                    {
-                        double atan2 = Math.Atan2(corner.Y - center.Y, corner.X - center.X);
-
-                        pushRect = corner - new Vector2((float)(center.X + circle.Radius * Math.Cos(atan2)),
-                            (float)(center.Y + circle.Radius * Math.Sin(atan2)));
-                    }
-                    else
-                    {
-                        pushRect = FlattenAlongLesserDimension(new Vector2(
-                        triBottomRight.X - circleBounds.X,
-                        triBottomRight.Y - circleBounds.Y));
-                    }
-                    break;
-
-                case 3:
-                    corner = triBounds.TopRight;
-                    if (center.X > corner.X && center.Y < corner.Y)
-                    {
-                        double atan2 = Math.Atan2(corner.Y - center.Y, corner.X - center.X);
-
-                        pushRect = corner - new Vector2((float)(center.X + circle.Radius * Math.Cos(atan2)),
-                            (float)(center.Y + circle.Radius * Math.Sin(atan2)));
-                    }
-                    else
-                    {
-                        pushRect = FlattenAlongLesserDimension(new Vector2(
-                        triBottomRight.X - circleBounds.X,
-                        tri.Y - circleBottomRight.Y));
-                    }
-                    break;
-
-                case 4:
-                    corner = triBounds.TopLeft;
-                    if (center.X < corner.X && center.Y < corner.Y)
-                    {
-                        double atan2 = Math.Atan2(corner.Y - center.Y, corner.X - center.X);
-
-                        pushRect = corner - new Vector2((float)(center.X + circle.Radius * Math.Cos(atan2)),
-                            (float)(center.Y + circle.Radius * Math.Sin(atan2)));
-                    }
-                    else
-                    {
-                        pushRect = FlattenAlongLesserDimension(new Vector2(
-                        tri.X - circleBottomRight.X,
-                        tri.Y - circleBottomRight.Y));
-                    }
-                    break;
-
-                default:
-                    throw new Exception("tri.EmptyQuadrant returned " + emptyQuadrant);
-            }
+            pushRect = -Pushout(circle, triBounds);
 
             Vector2 linePoint;
             Vector2 circlePoint;
@@ -239,65 +167,137 @@ namespace HFFlib
                     case 1:
                         if(closestPoint == pointA)
                         {
-                            //no pushdown allowed
-                            pushCorner = closestPoint - new Vector2(
-                                (float)(center.X + circle.Radius * Math.Cos(atan2)),
-                                (float)(center.Y + circle.Radius * Math.Abs(Math.Sin(atan2))));
+                            if (center.X > closestPoint.X)
+                            {
+                                //push up
+                                pushCorner = new(0, closestPoint.Y -
+                                    ((float)Math.Sqrt(r2 - Math.Pow(closestPoint.X - center.X, 2)) + center.Y));
+                            }
+                            else
+                            {
+                                //no pushdown allowed
+                                pushCorner = closestPoint - new Vector2(
+                                    (float)(center.X + circle.Radius * Math.Cos(atan2)),
+                                    (float)(center.Y + circle.Radius * Math.Abs(Math.Sin(atan2))));
+                            }
                         }
                         else
                         {
-                            //no pushleft allowed
-                            pushCorner = closestPoint - new Vector2((float)
-                                (center.X + circle.Radius * -Math.Abs(Math.Cos(atan2))),
-                                (float)(center.Y + circle.Radius * Math.Sin(atan2)));
+                            if (center.Y < closestPoint.Y)
+                            {
+                                //push up
+                                pushCorner = new(0, closestPoint.Y -
+                                    ((float)Math.Sqrt(r2 - Math.Pow(closestPoint.X - center.X, 2)) + center.Y));
+                            }
+                            else
+                            {
+                                //no pushleft allowed
+                                pushCorner = closestPoint - new Vector2((float)
+                                    (center.X + circle.Radius * -Math.Abs(Math.Cos(atan2))),
+                                    (float)(center.Y + circle.Radius * Math.Sin(atan2)));
+                            }
                         }
                         break;
                     case 2:
                         if (closestPoint == pointA)
                         {
-                            //no pushright allowed
-                            pushCorner = closestPoint - new Vector2((float)
-                                (center.X + circle.Radius * Math.Abs(Math.Cos(atan2))),
-                                (float)(center.Y + circle.Radius * Math.Sin(atan2)));
+                            if (center.Y > closestPoint.Y)
+                            {
+                                //push up
+                                pushCorner = new(0, closestPoint.Y -
+                                    ((float)Math.Sqrt(r2 - Math.Pow(closestPoint.X - center.X, 2)) + center.Y));
+                            }
+                            else
+                            {
+                                //no pushright allowed
+                                pushCorner = closestPoint - new Vector2((float)
+                                    (center.X + circle.Radius * Math.Abs(Math.Cos(atan2))),
+                                    (float)(center.Y + circle.Radius * Math.Sin(atan2)));
+                            }
                         }
                         else
                         {
-                            //no pushdown allowed
-                            pushCorner = closestPoint - new Vector2(
-                                (float)(center.X + circle.Radius * Math.Cos(atan2)),
-                                (float)(center.Y + circle.Radius * Math.Abs(Math.Sin(atan2))));
+                            if (center.X < closestPoint.X)
+                            {
+                                //push up
+                                pushCorner = new(0, closestPoint.Y -
+                                    ((float)Math.Sqrt(r2 - Math.Pow(closestPoint.X - center.X, 2)) + center.Y));
+                            }
+                            else
+                            {
+                                //no pushdown allowed
+                                pushCorner = closestPoint - new Vector2(
+                                    (float)(center.X + circle.Radius * Math.Cos(atan2)),
+                                    (float)(center.Y + circle.Radius * Math.Abs(Math.Sin(atan2))));
+                            }
                         }
                         break;
                     case 3:
                         if (closestPoint == pointA)
                         {
-                            //no pushright allowed
-                            pushCorner = closestPoint - new Vector2(
-                                (float)(center.X + circle.Radius * Math.Abs(Math.Cos(atan2))),
-                                (float)(center.Y + circle.Radius * Math.Sin(atan2)));
+                            if (center.Y > closestPoint.Y)
+                            {
+                                //push left
+                                pushCorner = new(closestPoint.X -
+                                    ((float)Math.Sqrt(r2 - Math.Pow(closestPoint.Y - center.Y, 2)) + center.X), 0);
+                            }
+                            else
+                            {
+                                //no pushright allowed
+                                pushCorner = closestPoint - new Vector2(
+                                    (float)(center.X + circle.Radius * Math.Abs(Math.Cos(atan2))),
+                                    (float)(center.Y + circle.Radius * Math.Sin(atan2)));
+                            }
                         }
                         else
                         {
-                            //no pushup allowed
-                            pushCorner = closestPoint - new Vector2(
-                                (float)(center.X + circle.Radius * Math.Cos(atan2)),
-                                (float)(center.Y + circle.Radius * -Math.Abs(Math.Sin(atan2))));
+                            if (center.X < closestPoint.X)
+                            {
+                                //push left
+                                pushCorner = new(closestPoint.X -
+                                    ((float)Math.Sqrt(r2 - Math.Pow(closestPoint.Y - center.Y, 2)) + center.X), 0);
+                            }
+                            else
+                            {
+                                //no pushup allowed
+                                pushCorner = closestPoint - new Vector2(
+                                    (float)(center.X + circle.Radius * Math.Cos(atan2)),
+                                    (float)(center.Y + circle.Radius * -Math.Abs(Math.Sin(atan2))));
+                            }
                         }
                         break;
                     case 4:
                         if (closestPoint == pointA)
                         {
-                            //no pushup allowed
-                            pushCorner = closestPoint - new Vector2(
-                                (float)(center.X + circle.Radius * Math.Cos(atan2)),
-                                (float)(center.Y + circle.Radius * -Math.Abs(Math.Sin(atan2))));
+                            if (center.X > closestPoint.X)
+                            {
+                                //push right
+                                pushCorner = new(closestPoint.X -
+                                    ((float)-Math.Sqrt(r2 - Math.Pow(closestPoint.Y - center.Y, 2)) + center.X), 0);
+                            }
+                            else
+                            {
+                                //no pushup allowed
+                                pushCorner = closestPoint - new Vector2(
+                                    (float)(center.X + circle.Radius * Math.Cos(atan2)),
+                                    (float)(center.Y + circle.Radius * -Math.Abs(Math.Sin(atan2))));
+                            }
                         }
                         else
                         {
-                            //no pushleft allowed
-                            pushCorner = closestPoint - new Vector2((float)
-                                (center.X + circle.Radius * -Math.Abs(Math.Cos(atan2))),
-                                (float)(center.Y + circle.Radius * Math.Sin(atan2)));
+                            if (center.Y > closestPoint.Y)
+                            {
+                                //push right
+                                pushCorner = new(closestPoint.X -
+                                    ((float)-Math.Sqrt(r2 - Math.Pow(closestPoint.Y - center.Y, 2)) + center.X), 0);
+                            }
+                            else
+                            {
+                                //no pushleft allowed
+                                pushCorner = closestPoint - new Vector2((float)
+                                    (center.X + circle.Radius * -Math.Abs(Math.Cos(atan2))),
+                                    (float)(center.Y + circle.Radius * Math.Sin(atan2)));
+                            }
                         }
                         break;
                     default:
