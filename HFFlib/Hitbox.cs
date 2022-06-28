@@ -8,6 +8,11 @@ using System.Threading.Tasks;
 
 namespace HFFlib
 {
+    /// <summary>
+    /// The abstract Hitbox class. Has Intersect(Hitbox), get/set Shape, GetBoundingBox(),
+    /// and serialization/deserialization methods. Note that serialization/deserializaton
+    /// methods must be overridden in subclasses to account for Shape.
+    /// </summary>
     [Serializable]
     public abstract class Hitbox : ISerializable
     {
@@ -40,35 +45,22 @@ namespace HFFlib
         public abstract IShape Shape { get; set; }
     }
 
+    /// <summary>
+    /// The rectangle hitbox. Has implementations of all functions for a rectangle.
+    /// </summary>
     [Serializable]
-    public abstract class SolidHitbox : Hitbox
-    {
-        protected SolidHitbox() : base()
-        {
-            Data.Type = "solid";
-        }
-
-        protected SolidHitbox(SerializationInfo info, StreamingContext context) : base(info, context)
-        {
-
-        }
-
-        public abstract Vector2 Diff(CollisionBubble collision);
-    }
-
-    [Serializable]
-    public class SolidRect : SolidHitbox
+    public class HitRect : Hitbox
     {
         public Rectangle Rect;
         public override IShape Shape
         {
             get => Rect;
-            set 
-            { 
-                if(value is Rectangle rect) 
+            set
+            {
+                if (value is Rectangle rect)
                 {
                     Rect = rect;
-                } 
+                }
                 else
                 {
                     throw new InvalidCastException("Cannot implicitly convert " +
@@ -77,20 +69,17 @@ namespace HFFlib
             }
         }
 
-        public SolidRect(float x, float y, float width, float height) : base()
+        public HitRect(float x, float y, float width, float height, string type) : base()
         {
             Rect = new(x, y, width, height);
+            Data.Type = type;
         }
 
-        public SolidRect(SerializationInfo info, StreamingContext context) : base(info, context)
+        public HitRect(SerializationInfo info, StreamingContext context) : base(info, context)
         {
             Rect = (Rectangle)info.GetValue("rect", typeof(Rectangle));
         }
 
-        public override Vector2 Diff(CollisionBubble collision)
-        {
-            return Utils.Pushout(collision.Bubble, Rect);
-        }
 
         public override Rectangle GetBoundingBox()
         {
@@ -99,151 +88,99 @@ namespace HFFlib
 
         public override bool Intersects(Hitbox other)
         {
-            if(other is CollisionBubble collision)
-            {
-                return Rect.Intersects(collision.Bubble);
-            }
+            if (other.Shape is Rectangle rect) return Rect.Intersects(rect);
+
+            if (other.Shape is Circle circle) return Rect.Intersects(circle);
 
             return false;
         }
 
-        public override void GetObjectData(SerializationInfo info, StreamingContext context) 
+        public override void GetObjectData(SerializationInfo info, StreamingContext context)
         {
             base.GetObjectData(info, context);
             info.AddValue("rect", Rect, typeof(Rectangle));
         }
     }
 
-    [Serializable]
-    public class SolidTri : SolidHitbox
+    /// <summary>
+    /// The solid interface. Has a PushOut(collision) method that returns the inverse 
+    /// amount by which an intersecting collision hitbox must be pushed out to no longer
+    /// intersect this solid. Also has a get Instance method for convenience.
+    /// </summary>
+    public interface ISolid 
     {
-        public Triangle Tri;
-        public override IShape Shape
-        {
-            get => Tri;
-            set
-            {
-                if (value is Triangle tri)
-                {
-                    Tri = tri;
-                }
-                else
-                {
-                    throw new InvalidCastException("Cannot implicitly convert " +
-                        value.GetType().ToString() + "to Triangle");
-                }
-            }
-        }
-
-        public SolidTri(float x, float y, float width, float height, int emptyQuadrant) : base()
-        {
-            Tri = new(x, y, width, height, emptyQuadrant);
-        }
-
-        public SolidTri(SerializationInfo info, StreamingContext context) : base(info, context)
-        {
-            Tri = (Triangle)info.GetValue("tri", typeof(Triangle));
-        }
-
-        public override Vector2 Diff(CollisionBubble collision)
-        {
-            return -Utils.Pushout(Tri, collision.Bubble);
-        }
-
-        public override Rectangle GetBoundingBox()
-        {
-            return Tri.Bounds;
-        }
-
-        public override bool Intersects(Hitbox other)
-        {
-            if(other is CollisionBubble bubble)
-            {
-                return Tri.Intersects(bubble.Bubble);
-            }
-
-            return false;
-        }
-
-        public override void GetObjectData(SerializationInfo info, StreamingContext context)
-        {
-            base.GetObjectData(info, context);
-            info.AddValue("tri", Tri, typeof(Triangle));
-        }
+        public const string TYPE = "solid";
+        public abstract Vector2 Diff(ICollision collision);
+        public abstract Hitbox Instance { get; }
     }
 
-    [Serializable]
-    public class CollisionBubble : Hitbox
+    /// <summary>
+    /// The collision interface. Has a PushOut(solid) method that returns the amount by
+    /// which it must be pushed out to no longer intersect an intersecting solid hitbox.
+    /// </summary>
+    public interface ICollision
     {
-        public Circle Bubble;
-        public override IShape Shape
-        {
-            get => Bubble;
-            set
-            {
-                if (value is Circle circle)
-                {
-                    Bubble = circle;
-                }
-                else
-                {
-                    throw new InvalidCastException("Cannot implicitly convert " +
-                        value.GetType().ToString() + "to Circle");
-                }
-            }
-        }
+        public const string TYPE = "collision";
+        public abstract Vector2 Diff(ISolid solid);
 
-        public CollisionBubble(float x, float y, float radius) : base()
-        {
-            Data.Type = "collision";
-            Bubble = new(x, y, radius);
-        }
-
-        public CollisionBubble(SerializationInfo info, StreamingContext context) : base(info, context)
-        {
-            Bubble = (Circle)info.GetValue("bubble", typeof(Circle));
-        }
-
-        public Vector2 Diff(SolidHitbox other)
-        {
-            if(other is SolidRect rect)
-            {
-                return -Utils.Pushout(Bubble, rect.Rect);
-            }
-            else if(other is SolidTri tri)
-            {
-                return Utils.Pushout(tri.Tri, Bubble);
-            }
-
-            throw new ArgumentException("other is SolidHitbox but has no Diff implementation");
-        }
-
-        public override Rectangle GetBoundingBox()
-        {
-            return Bubble.Bounds;
-        }
-
-        public override bool Intersects(Hitbox other)
-        {
-            if(other is SolidRect rect)
-            {
-                return Bubble.Intersects(rect.Rect);
-            }
-            if(other is SolidTri tri)
-            {
-                return Bubble.Intersects(tri.Tri);
-            }
-
-            return false;
-        }
-
-        public override void GetObjectData(SerializationInfo info, StreamingContext context)
-        {
-            base.GetObjectData(info, context);
-            info.AddValue("bubble", Bubble, typeof(Circle));
-        }
+        public abstract Hitbox Instance { get; }
     }
 
+    /// <summary>
+    /// An implementation for a solid rectangle hitbox.
+    /// </summary>
+    [Serializable]
+    public class SolidRect : HitRect, ISolid
+    {
+        public SolidRect(float x, float y, float width, float height) : base(x, y, width, height, ISolid.TYPE)
+        {
+
+        }
+
+        public SolidRect(SerializationInfo info, StreamingContext context) : base(info, context)
+        {
+
+        }
+
+        public Vector2 Diff(ICollision collision)
+        {
+            if (collision is CollisionRect rect) return Utils.Pushout(rect.Rect, Rect);
+
+            return Vector2.Zero;
+        }
+
+        public Hitbox Instance => this;
+    }
+
+    /// <summary>
+    /// An implementation for a collision rectangle hitbox.
+    /// </summary>
+    [Serializable]
+    public class CollisionRect : HitRect, ICollision
+    {
+        public CollisionRect(float x, float y, float width, float height) : base(x, y, width, height, ICollision.TYPE)
+        {
+
+        }
+
+        public CollisionRect(SerializationInfo info, StreamingContext context) : base(info, context)
+        {
+
+        }
+
+        public Vector2 Diff(ISolid solid)
+        {
+            if (solid is SolidRect rect) return Utils.Pushout(rect.Rect, Rect);
+
+            return Vector2.Zero;
+        }
+
+        public Hitbox Instance => this;
+    }
+
+    /// <summary>
+    /// The circle hitbox. Has implementations for all functions of a circle.
+    /// </summary>
     [Serializable]
     public class HitBubble : Hitbox
     {
@@ -283,14 +220,11 @@ namespace HFFlib
 
         public override bool Intersects(Hitbox other)
         {
-            if (other is HitBubble bubble)
-            {
-                return Bubble.Intersects(bubble.Bubble);
-            }
-            if (other is HitCapsule capsule)
-            {
-                return Bubble.Intersects(capsule.Capsule);
-            }
+            if (other.Shape is Rectangle rect) return Bubble.Intersects(rect);
+            if (other.Shape is Circle circle) return Bubble.Intersects(circle);
+            if (other.Shape is LineSegment ls) return Bubble.Intersects(ls);
+            if (other.Shape is Triangle tri) return Bubble.Intersects(tri);
+            if (other.Shape is Capsule cap) return Bubble.Intersects(cap);
 
             return false;
         }
@@ -302,6 +236,9 @@ namespace HFFlib
         }
     }
 
+    /// <summary>
+    /// The capsule hitbox. Has implementations for all functions of a capsule.
+    /// </summary>
     [Serializable]
     public class HitCapsule : Hitbox
     {
@@ -341,14 +278,9 @@ namespace HFFlib
 
         public override bool Intersects(Hitbox other)
         {
-            if(other is HitBubble bubble)
-            {
-                return Capsule.Intersects(bubble.Bubble);
-            }
-            if(other is HitCapsule capsule)
-            {
-                return Capsule.Intersects(capsule.Capsule);
-            }
+            if(other.Shape is Circle bubble) return Capsule.Intersects(bubble);
+
+            if(other.Shape is Capsule capsule) return Capsule.Intersects(capsule);
 
             return false;
         }
@@ -361,7 +293,9 @@ namespace HFFlib
     }
 
 
-
+    /// <summary>
+    /// A container for whatever data I decide to include.
+    /// </summary>
     [Serializable]
     public class HitboxData : ISerializable
     {

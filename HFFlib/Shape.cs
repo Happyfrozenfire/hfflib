@@ -59,17 +59,6 @@ namespace HFFlib
         /// <param name="height">Must be greater than 0</param>
         public Rectangle(float x, float y, float width, float height)
         {
-            if (width <= 0)
-            {
-                throw new ArgumentOutOfRangeException(nameof(width),
-                    "width must be greater than 0");
-            }
-
-            if (height <= 0)
-            {
-                throw new ArgumentOutOfRangeException(nameof(height),
-                    "height must be greater than 0");
-            }
 
             this.position = new Vector2(x, y);
             this.dimensions = new Vector2(width, height);
@@ -133,8 +122,8 @@ namespace HFFlib
         public bool Contains(Vector2 point)
         {
             Vector2 bottomRight = BottomRight;
-            return X < point.X && point.X < bottomRight.X &&
-                Y < point.Y && point.Y < bottomRight.Y;
+            return X <= point.X && point.X <= bottomRight.X &&
+                Y <= point.Y && point.Y <= bottomRight.Y;
         }
         /// <summary>
         /// 
@@ -297,7 +286,7 @@ namespace HFFlib
         {
             float x = point.X - center.X;
             float y = point.Y - center.Y;
-            return (x * x) + (y * y) < (radius * radius);
+            return (x * x) + (y * y) <= (radius * radius);
         }
 
         /// <summary>
@@ -317,7 +306,9 @@ namespace HFFlib
         /// <returns>true if the Circle intersects the specified Circle other</returns>
         public bool Intersects(Circle other)
         {
-            return this.Contains(other.center) || other.Contains(this.center);
+            Vector2 posDiff = other.Center - this.Center;
+            float rSum = this.Radius + other.Radius;
+            return posDiff.X * posDiff.X + posDiff.Y * posDiff.Y <= rSum * rSum;
         }
 
         public bool Intersects(LineSegment lineSegment)
@@ -649,7 +640,7 @@ namespace HFFlib
 
         public bool Contains(Vector2 point)
         {
-            return false;
+            return Slope * point.X + YIntercept == point.Y;
         }
 
         /// <summary>
@@ -835,7 +826,7 @@ namespace HFFlib
 
         public bool Contains(Vector2 point)
         {
-            return line.DistanceTo(point) < radius;
+            return line.DistanceTo(point) <= radius;
         }
 
         public LineSegment[] GetLines()
