@@ -301,17 +301,20 @@ namespace HFFlib
     {
         public string Type;
         public Vector2 Offset;
+        public Vector2 Size;
 
         public HitboxData()
         {
             Type = "";
             Offset = Vector2.Zero;
+            Size = Vector2.One;
         }
 
         public HitboxData(SerializationInfo info, StreamingContext context)
         {
             Type = info.GetString("type");
             Offset = new(info.GetSingle("xoffset"), info.GetSingle("yoffset"));
+            Size = new(info.GetSingle("width"), info.GetSingle("height"));
         }
 
         public virtual void GetObjectData(SerializationInfo info, StreamingContext context)
@@ -319,6 +322,8 @@ namespace HFFlib
             info.AddValue("type", Type, typeof(string));
             info.AddValue("xoffset", Offset.X);
             info.AddValue("yoffset", Offset.Y);
+            info.AddValue("width", Size.X);
+            info.AddValue("height", Size.Y);
         }
     }
 }
