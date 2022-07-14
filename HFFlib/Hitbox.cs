@@ -43,6 +43,8 @@ namespace HFFlib
         public abstract bool Intersects(Hitbox other);
 
         public abstract IShape Shape { get; set; }
+
+        public abstract Hitbox Clone();
     }
 
     /// <summary>
@@ -99,6 +101,15 @@ namespace HFFlib
         {
             base.GetObjectData(info, context);
             info.AddValue("rect", Rect, typeof(Rectangle));
+        }
+
+        public override Hitbox Clone()
+        {
+            HitRect hitbox = new(Rect.X, Rect.Y, Rect.Width, Rect.Height, Data.Type);
+            hitbox.Data.Offset = Data.Offset;
+            hitbox.Data.Size = Data.Size;
+
+            return hitbox;
         }
     }
 
@@ -234,6 +245,14 @@ namespace HFFlib
             base.GetObjectData(info, context);
             info.AddValue("bubble", Bubble, typeof(Circle));
         }
+
+        public override Hitbox Clone()
+        {
+            HitBubble hitbox = new(Bubble.X, Bubble.Y, Bubble.Radius, Data.Type);
+            hitbox.Data.Size = Data.Size;
+            hitbox.Data.Offset = Data.Offset;
+            return hitbox;
+        }
     }
 
     /// <summary>
@@ -289,6 +308,15 @@ namespace HFFlib
         {
             base.GetObjectData(info, context);
             info.AddValue("capsule", Capsule, typeof(Capsule));
+        }
+
+        public override Hitbox Clone()
+        {
+            HitCapsule hitbox = new(Capsule.Line.PointA.X, Capsule.Line.PointA.Y, Capsule.Line.PointB.X, Capsule.Line.PointB.Y, Capsule.Radius, Data.Type);
+            hitbox.Data.Offset = Data.Offset;
+            hitbox.Data.Size = Data.Size;
+
+            return hitbox;
         }
     }
 
