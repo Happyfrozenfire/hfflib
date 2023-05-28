@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.Serialization;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using static System.Formats.Asn1.AsnWriter;
 
 namespace HFFlib
 {
@@ -715,8 +718,10 @@ namespace HFFlib
             float b1 = this.YIntercept;
             float m2 = other.Slope;
             float b2 = other.YIntercept;
-            float thisMin;
-            float thisMax;
+            float thisMin = Math.Min(pointA.X, pointB.X);
+            float thisMax = Math.Max(pointA.X, pointB.X);
+            float otherMin = Math.Min(other.pointA.X, other.pointB.X);
+            float otherMax = Math.Max(other.pointA.X, other.pointB.X);
 
             //if parallel
             if (m1 == m2)
@@ -727,20 +732,14 @@ namespace HFFlib
                     return false;
                 }
                 //if same line, check for x overlap
-                thisMin = Math.Min(pointA.X, pointB.X);
-                thisMax = Math.Max(pointA.X, pointB.X);
-                float otherMin = Math.Min(pointA.X, pointB.X);
-                float otherMax = Math.Min(pointA.X, pointB.X);
-                return otherMin < thisMax && thisMax < otherMax ||
-                    thisMin < otherMax && otherMax < thisMax;
+                return otherMin < thisMax && thisMin < otherMax;
             }
 
             //an intersection exists. Find it and check for bounds.
             float xIntersect = (b2 - b1) / (m1 - m2);
-            thisMin = Math.Min(pointA.X, pointB.X);
-            thisMax = Math.Max(pointA.X, pointB.X);
-
-            return thisMin < xIntersect && xIntersect < thisMax;
+            float maxMin = Math.Max(thisMin, otherMin);
+            float minMax = Math.Min(thisMax, otherMax);
+            return maxMin < xIntersect && xIntersect < minMax;
         }
 
         public bool Intersects(Rectangle rect)
@@ -908,4 +907,293 @@ namespace HFFlib
             info.AddValue("radius", radius);
         }
     }
+
+    [Serializable]
+    public struct Dynrapsule : IShape, ISerializable
+    {
+        private LineSegment line;
+        private float r1;
+        private float r2;
+
+        public Dynrapsule(float x1, float y1, float x2, float y2, float r1, float r2)
+        {
+            this.line = new(x1, y1, x2, y2);
+            this.r1 = r1;
+            this.r2 = r2;
+        }
+
+        public Dynrapsule(Vector2 pointA, Vector2 pointB, float r1, float r2)
+        {
+            this.line = new(pointA, pointB);
+            this.r1 = r1;
+            this.r2 = r2;
+        }
+
+        public Dynrapsule(LineSegment line, float r1, float r2)
+        {
+            this.line = line;
+            this.r1 = r1;
+            this.r2 = r2;
+        }
+
+        public Dynrapsule(SerializationInfo info, StreamingContext context)
+        {
+            line = (LineSegment)info.GetValue("line", typeof(LineSegment));
+            r1 = info.GetSingle("r1");
+            r2 = info.GetSingle("r2");
+        }
+
+        public LineSegment Line => line;
+
+        public float R1 => r1;
+        public float R2 => r2;
+
+        public Rectangle Bounds
+        {
+            get
+            {
+                Vector2 pointA = line.PointA;
+                Vector2 pointB = line.PointB;
+
+                float left = Math.Min(pointA.X - r1, pointB.X - r2);
+                float right = Math.Max(pointA.X + r1, pointB.X + r2);
+                float top = Math.Min(pointA.Y - r1, pointB.Y - r2);
+                float bottom = Math.Max(pointA.Y + r1, pointB.Y + r2);
+
+
+                return new Rectangle(left, top, right - left, bottom - top);
+            }
+        }
+
+        public Vector2 Center => line.Center;
+
+        public IShape CloneShape()
+        {
+            Vector2 a = line.PointA;
+            Vector2 b = line.PointB;
+            return new Dynrapsule(a.X, a.Y, b.X, b.Y, r1, r2);
+        }
+
+        public Dynrapsule Clone() => (Dynrapsule)CloneShape();
+
+        public bool Contains(Vector2 point)
+        {
+            //CASE 1: one circle entirely contains the other
+            //CASE 2: !float.isNaN(slope) && Math.Abs(angle) != Math.PI / 2
+            //CASE 3: !float.isNaN(slope) && Math.Abs(angle) == Math.PI / 2
+            //CASE 3: isNaN(slope)
+
+            //case 1
+            Vector2 pointA = line.PointA;
+            Vector2 pointB = line.PointB;
+            float rDiff = Math.Abs(r2 - r1);
+            float length = (float)Math.Sqrt(Math.Pow(pointB.X - pointA.X, 2) + Math.Pow(pointB.Y - pointA.Y, 2));
+            if (length + r1 <= r2 || length + r2 <= r1)
+            {
+                return r2 >= r1 ? new Circle(pointB, r2).Contains(point) : new Circle(pointA, r1).Contains(point);
+            }
+
+            
+            float slope = line.Slope;
+            bool axlt = pointA.X <= pointB.X;
+            bool above = !float.IsNaN(slope) ? point.Y > slope * (point.X - pointA.X) + pointA.Y : point.X > pointA.X;
+
+            float angle = (float)((!float.IsNaN(slope) ? Math.Atan(slope) : Math.PI / 2) + ((axlt == above) ? -Math.Acos(rDiff / length) : Math.Acos(rDiff / length)));
+
+            float xIntersect = (float)(Math.Clamp(
+                Math.Abs(angle) != Math.PI / 2 ? (slope * pointA.X - Math.Tan(angle) * point.X + point.Y - pointA.Y) / (slope - Math.Tan(angle)) : point.X,
+                axlt ? pointA.X : pointB.X, axlt ? pointB.X : pointA.X));
+            float yIntersect = slope * (xIntersect - pointA.X) + pointA.Y;
+
+            float progress = (xIntersect - pointA.X) / (pointB.X - pointA.X);
+            float radius = r1 + progress * (r2 - r1);
+            return Math.Pow(point.X - xIntersect, 2) - Math.Pow(point.Y - yIntersect, 2) <= radius * radius;
+
+        }
+
+        public LineSegment[] GetLines()
+        {
+            //CASE 1: one circle entirely contains the other
+            //CASE 2: !isNaN(slope)
+            //CASE 3: isNaN(slope)
+
+            //case 1
+            Vector2 pointA = this.r1 < this.r2 ? line.PointA : line.PointB;
+            Vector2 pointB = this.r1 < this.r2 ? line.PointB : line.PointA;
+            float r1 = this.r1 < this.r2 ? this.r1 : this.r2;
+            float r2 = this.r1 < this.r2 ? this.r2 : this.r1;
+
+            float rDiff = Math.Abs(r2 - r1);
+            float length = (float)Math.Sqrt(Math.Pow(pointB.X - pointA.X, 2) + Math.Pow(pointB.Y - pointA.Y, 2));
+            float slope = line.Slope;
+
+            float atan = (float)(float.IsNaN(slope) ? (pointA.Y < pointB.Y ? -Math.PI / 2 : Math.PI / 2) : Math.Atan(slope));
+            float acos = (float)Math.Acos(rDiff / length);
+
+            float angle1 = atan - acos;
+            float angle2 = atan + acos;
+            float b = pointA.X < pointB.X ? 1 : -1;
+
+            LineSegment l1 = new(pointA.X - b * r1 * (float)Math.Cos(angle1), pointA.Y - b * r1 * (float)Math.Sin(angle1),
+                pointB.X - b * r2 * (float)Math.Cos(angle1), pointB.Y - b * r2 * (float)Math.Sin(angle1));
+            LineSegment l2 = new(pointA.X - b * r1 * (float)Math.Cos(angle2), pointA.Y - b * r1 * (float)Math.Sin(angle2),
+                pointB.X - b * r2 * (float)Math.Cos(angle2), pointB.Y - b * r2 * (float)Math.Sin(angle2));
+
+            return new LineSegment[] { l1, l2 };
+        }
+
+        /// <summary> 
+        /// </summary>
+        /// <param name="circle"></param>
+        /// <returns>true if this capsule intersects circle other</returns>
+        public bool Intersects(Circle circle)
+        {
+            //CASE 1: one circle entirely contains the other
+            //CASE 2: !float.isNaN(slope) && Math.Abs(angle) != Math.PI / 2
+            //CASE 3: !float.isNaN(slope) && Math.Abs(angle) == Math.PI / 2
+            //CASE 3: isNaN(slope)
+            Vector2 point = circle.Center;
+
+            //case 1
+            Vector2 pointA = line.PointA;
+            Vector2 pointB = line.PointB;
+            float rDiff = Math.Abs(r2 - r1);
+            float length = (float)Math.Sqrt(Math.Pow(pointB.X - pointA.X, 2) + Math.Pow(pointB.Y - pointA.Y, 2));
+            if (length + r1 <= r2 || length + r2 <= r1)
+            {
+                return r2 >= r1 ? new Circle(pointB, r2).Intersects(circle) : new Circle(pointA, r1).Intersects(circle);
+                
+            }
+
+            float slope = line.Slope;
+            bool axlt = pointA.X <= pointB.X;
+            bool above = !float.IsNaN(slope) ? point.Y > slope * (point.X - pointA.X) + pointA.Y : point.X > pointA.X;
+
+            float angle = (float)((!float.IsNaN(slope) ? Math.Atan(slope) : Math.PI / 2) + ((axlt == above) ? -Math.Acos(rDiff / length) : Math.Acos(rDiff / length)));
+
+            float xIntersect = (float)(Math.Clamp(
+                Math.Abs(angle) != Math.PI / 2 ? (slope * pointA.X - Math.Tan(angle) * point.X + point.Y - pointA.Y) / (slope - Math.Tan(angle)) : point.X,
+                axlt ? pointA.X : pointB.X, axlt ? pointB.X : pointA.X));
+            float yIntersect = slope * (xIntersect - pointA.X) + pointA.Y;
+
+            float progress = (xIntersect - pointA.X) / (pointB.X - pointA.X);
+            float radius = r1 + progress * (r2 - r1);
+            return Math.Pow(point.X - xIntersect, 2) + Math.Pow(point.Y - yIntersect, 2) <= (radius + circle.Radius) * (radius + circle.Radius);
+        }
+
+        /// <summary>
+        /// </summary>
+        /// <param name="capsule"></param>
+        /// <returns>true if this capsule intersects capsule other</returns>
+        public bool Intersects(Capsule capsule)
+        {
+            //cannibalizes lineseg calcs 
+            Vector2 pointA = line.PointA;
+            Vector2 pointB = line.PointB;
+            Vector2 otherA = capsule.Line.PointA;
+            Vector2 otherB = capsule.Line.PointB;
+
+            //Lines intersect
+            if(line.Intersects(capsule.Line))
+            {
+                return true;
+            }
+
+            //otherA == otherB case made redundant by this
+            if(Intersects(new Circle(otherA, capsule.Radius)))
+            {
+                return true;
+            }
+            //if chain just in case compiler tries to run all the shit in an or statement
+            if(Intersects(new Circle(otherB, capsule.Radius)))
+            {
+                return true;
+            }
+            if(capsule.Intersects(new Circle(pointA, r1)))
+            {
+                return true;
+            }
+            if(capsule.Intersects(new Circle(pointB, r2)))
+            {
+                return true;
+            }
+            return false;
+        }
+
+        public bool Intersects(Dynrapsule other)
+        {
+            //cannibalizes lineseg calcs 
+            Vector2 pointA = line.PointA;
+            Vector2 pointB = line.PointB;
+            Vector2 otherA = other.Line.PointA;
+            Vector2 otherB = other.Line.PointB;
+
+            //if chain just in case compiler tries to run all in a single or statement
+            if (line.Intersects(other.Line))
+            {
+                return true;
+            }
+            if (Intersects(new Circle(otherA, other.R1)))
+            {
+                return true;
+            }
+            if (Intersects(new Circle(otherB, other.R2)))
+            {
+                return true;
+            }
+            if (other.Intersects(new Circle(pointA, r1)))
+            {
+                return true;
+            }
+            if (other.Intersects(new Circle(pointB, r2)))
+            {
+                return true;
+            }
+            return false;
+        }
+
+
+        /// <summary>
+        /// </summary>
+        /// <param name="rect"></param>
+        /// <returns>true if this capsule intersects rectangle rect</returns>
+        public bool Intersects(Rectangle rect)
+        {
+            //three intersection cases:
+            //rect inside of capsule
+            //capsule circle intersects rect
+            //capsule line intersects rect
+
+            //rect inside of capsule
+            if (this.Contains(rect.TopLeft))
+            {
+                return true;
+            }
+
+            //capsule circle intersects rect
+            Vector2 pointA = line.PointA;
+            Vector2 pointB = line.PointB;
+
+            Circle circleA = new(pointA, r1);
+            Circle circleB = new(pointB, r2);
+            if (circleA.Intersects(rect) || circleB.Intersects(rect))
+            {
+                return true;
+            }
+
+            //capsule line intersects rect
+            LineSegment[] lines = GetLines();
+            return lines[0].Intersects(rect) || lines[1].Intersects(rect);
+        }
+
+        public void GetObjectData(SerializationInfo info, StreamingContext context)
+        {
+            info.AddValue("line", line, typeof(LineSegment));
+            info.AddValue("r1", r1);
+            info.AddValue("r2", r2);
+        }
+    }
+
+
+
 }

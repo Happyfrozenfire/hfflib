@@ -5,10 +5,14 @@
       "Microsoft.Toolkit.HighPerformance/7.1.2": {
         "type": "package",
         "compile": {
-          "lib/net5.0/Microsoft.Toolkit.HighPerformance.dll": {}
+          "lib/net5.0/Microsoft.Toolkit.HighPerformance.dll": {
+            "related": ".pdb;.xml"
+          }
         },
         "runtime": {
-          "lib/net5.0/Microsoft.Toolkit.HighPerformance.dll": {}
+          "lib/net5.0/Microsoft.Toolkit.HighPerformance.dll": {
+            "related": ".pdb;.xml"
+          }
         }
       },
       "Raylib-CsLo/4.0.0": {
@@ -17,10 +21,14 @@
           "Microsoft.Toolkit.HighPerformance": "7.1.2"
         },
         "compile": {
-          "lib/netstandard2.1/Raylib-CsLo.dll": {}
+          "lib/netstandard2.1/Raylib-CsLo.dll": {
+            "related": ".pdb;.xml"
+          }
         },
         "runtime": {
-          "lib/netstandard2.1/Raylib-CsLo.dll": {}
+          "lib/netstandard2.1/Raylib-CsLo.dll": {
+            "related": ".pdb;.xml"
+          }
         },
         "contentFiles": {
           "contentFiles/any/netstandard2.1/raylib.dll": {
@@ -143,19 +151,24 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\gusjg\\.nuget\\packages\\": {}
+    "C:\\Users\\User\\.nuget\\packages\\": {},
+    "G:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\gusjg\\source\\repos\\HFFlib\\HFFlib\\HFFlib.csproj",
+      "projectUniqueName": "G:\\User\\Documents\\GitHub\\hfflib\\HFFlib\\HFFlib.csproj",
       "projectName": "HFFlib",
-      "projectPath": "C:\\Users\\gusjg\\source\\repos\\HFFlib\\HFFlib\\HFFlib.csproj",
-      "packagesPath": "C:\\Users\\gusjg\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\gusjg\\source\\repos\\HFFlib\\HFFlib\\obj\\",
+      "projectPath": "G:\\User\\Documents\\GitHub\\hfflib\\HFFlib\\HFFlib.csproj",
+      "packagesPath": "C:\\Users\\User\\.nuget\\packages\\",
+      "outputPath": "G:\\User\\Documents\\GitHub\\hfflib\\HFFlib\\obj\\",
       "projectStyle": "PackageReference",
+      "fallbackFolders": [
+        "G:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+      ],
       "configFilePaths": [
-        "C:\\Users\\gusjg\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "G:\\User\\Appdata\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [
@@ -192,7 +205,8 @@
           "net47",
           "net471",
           "net472",
-          "net48"
+          "net48",
+          "net481"
         ],
         "assetTargetFallback": true,
         "warn": true,
@@ -201,7 +215,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\5.0.400\\RuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.203\\RuntimeIdentifierGraph.json"
       }
     }
   }
