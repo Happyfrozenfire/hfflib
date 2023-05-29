@@ -978,37 +978,64 @@ namespace HFFlib
 
         public bool Contains(Vector2 point)
         {
-            //CASE 1: one circle entirely contains the other
-            //CASE 2: !float.isNaN(slope) && Math.Abs(angle) != Math.PI / 2
-            //CASE 3: !float.isNaN(slope) && Math.Abs(angle) == Math.PI / 2
-            //CASE 3: isNaN(slope)
+            Vector2 intersection;
+            float progress;
 
-            //case 1
+            //If one circle entirely contains the other, use circle-circle intersection calc
             Vector2 pointA = line.PointA;
             Vector2 pointB = line.PointB;
-            float rDiff = Math.Abs(r2 - r1);
             float length = (float)Math.Sqrt(Math.Pow(pointB.X - pointA.X, 2) + Math.Pow(pointB.Y - pointA.Y, 2));
             if (length + r1 <= r2 || length + r2 <= r1)
             {
                 return r2 >= r1 ? new Circle(pointB, r2).Contains(point) : new Circle(pointA, r1).Contains(point);
             }
 
-            
-            float slope = line.Slope;
-            bool axlt = pointA.X <= pointB.X;
-            bool above = !float.IsNaN(slope) ? point.Y > slope * (point.X - pointA.X) + pointA.Y : point.X > pointA.X;
+            LineSegment[] lines = this.GetLines();
 
-            float angle = (float)((!float.IsNaN(slope) ? Math.Atan(slope) : Math.PI / 2) + ((axlt == above) ? -Math.Acos(rDiff / length) : Math.Acos(rDiff / length)));
+            //If rapsule line is vertical
+            if (pointA.X == pointB.X)
+            {
+                //Pick tangent lineseg to use for calc
+                LineSegment lineseg = point.X > pointA.X == (r1 > 0 ? lines[0].PointA.X : lines[0].PointB.X) > pointA.X ? lines[0] : lines[1];
+                Vector2 linesegA = lineseg.PointA;
+                Vector2 linesegB = lineseg.PointB;
 
-            float xIntersect = (float)(Math.Clamp(
-                Math.Abs(angle) != Math.PI / 2 ? (slope * pointA.X - Math.Tan(angle) * point.X + point.Y - pointA.Y) / (slope - Math.Tan(angle)) : point.X,
-                axlt ? pointA.X : pointB.X, axlt ? pointB.X : pointA.X));
-            float yIntersect = slope * (xIntersect - pointA.X) + pointA.Y;
+                //tangent line cannot be horizontal, since by definition if tangent line is perpendicular to rapsule line, one circle contains the other
+                float antislope = -(linesegB.X - linesegA.X) / (linesegB.Y - linesegA.Y);
+                intersection = new Vector2(pointA.X, Math.Clamp(antislope * (pointA.X - point.X) + point.Y, Math.Min(pointA.Y, pointB.Y), Math.Max(pointA.Y, pointB.Y)));
 
-            float progress = (xIntersect - pointA.X) / (pointB.X - pointA.X);
+                progress = (intersection.Y - pointA.Y) / (pointB.Y - pointA.Y);
+            }
+            //if normal rapsule line
+            else
+            {
+                //Pick tangent lineseg to use for calc
+                float slope = (pointB.Y - pointA.Y) / (pointB.X - pointA.X);
+                LineSegment lineseg = point.Y < slope * (point.X - pointA.X) + pointA.Y == point.Y <
+                    (r1 > 0 ? slope * (lines[0].PointA.X - pointA.X) + pointA.Y : slope * (lines[0].PointB.X - pointA.X) + pointA.Y) ? lines[0] : lines[1];
+                Vector2 linesegA = lineseg.PointA;
+                Vector2 linesegB = lineseg.PointB;
+
+                //if tangent line is horizontal
+                if (linesegA.Y == linesegB.Y)
+                {
+                    float xIntersect = Math.Clamp(point.X, Math.Min(pointA.X, pointB.X), Math.Max(pointA.X, pointB.X));
+                    intersection = new Vector2(xIntersect, slope * (xIntersect - pointA.X) + pointA.Y);
+                    progress = (xIntersect - pointA.X) / (pointB.X - pointA.X);
+                }
+                //if normal tangent line
+                else
+                {
+                    float antislope = -(linesegB.X - linesegA.X) / (linesegB.Y - linesegA.Y);
+                    float xIntersect = Math.Clamp((slope * pointA.X - antislope * point.X + point.Y - pointA.Y) / (slope - antislope),
+                        Math.Min(pointA.X, pointB.X), Math.Max(pointA.X, pointB.X));
+                    intersection = new Vector2(xIntersect, slope * (xIntersect - pointA.X) + pointA.Y);
+                    progress = (xIntersect - pointA.X) / (pointB.X - pointA.X);
+                }
+            }
+
             float radius = r1 + progress * (r2 - r1);
-            return Math.Pow(point.X - xIntersect, 2) - Math.Pow(point.Y - yIntersect, 2) <= radius * radius;
-
+            return Vector2.DistanceSquared(point, intersection) <= radius * radius;
         }
 
         public LineSegment[] GetLines()
@@ -1048,37 +1075,65 @@ namespace HFFlib
         /// <returns>true if this capsule intersects circle other</returns>
         public bool Intersects(Circle circle)
         {
-            //CASE 1: one circle entirely contains the other
-            //CASE 2: !float.isNaN(slope) && Math.Abs(angle) != Math.PI / 2
-            //CASE 3: !float.isNaN(slope) && Math.Abs(angle) == Math.PI / 2
-            //CASE 3: isNaN(slope)
             Vector2 point = circle.Center;
+            Vector2 intersection;
+            float progress;
 
-            //case 1
+            //If one circle entirely contains the other, use circle-circle intersection calc
             Vector2 pointA = line.PointA;
             Vector2 pointB = line.PointB;
-            float rDiff = Math.Abs(r2 - r1);
             float length = (float)Math.Sqrt(Math.Pow(pointB.X - pointA.X, 2) + Math.Pow(pointB.Y - pointA.Y, 2));
             if (length + r1 <= r2 || length + r2 <= r1)
             {
                 return r2 >= r1 ? new Circle(pointB, r2).Intersects(circle) : new Circle(pointA, r1).Intersects(circle);
-                
             }
 
-            float slope = line.Slope;
-            bool axlt = pointA.X <= pointB.X;
-            bool above = !float.IsNaN(slope) ? point.Y > slope * (point.X - pointA.X) + pointA.Y : point.X > pointA.X;
+            LineSegment[] lines = this.GetLines();
 
-            float angle = (float)((!float.IsNaN(slope) ? Math.Atan(slope) : Math.PI / 2) + ((axlt == above) ? -Math.Acos(rDiff / length) : Math.Acos(rDiff / length)));
+            //If rapsule line is vertical
+            if(pointA.X == pointB.X)
+            {
+                //Pick tangent lineseg to use for calc
+                LineSegment lineseg = point.X > pointA.X == (r1 > 0 ? lines[0].PointA.X : lines[0].PointB.X) > pointA.X ? lines[0] : lines[1];
+                Vector2 linesegA = lineseg.PointA;
+                Vector2 linesegB = lineseg.PointB;
 
-            float xIntersect = (float)(Math.Clamp(
-                Math.Abs(angle) != Math.PI / 2 ? (slope * pointA.X - Math.Tan(angle) * point.X + point.Y - pointA.Y) / (slope - Math.Tan(angle)) : point.X,
-                axlt ? pointA.X : pointB.X, axlt ? pointB.X : pointA.X));
-            float yIntersect = slope * (xIntersect - pointA.X) + pointA.Y;
+                //tangent line cannot be horizontal, since by definition if tangent line is perpendicular to rapsule line, one circle contains the other
+                float antislope = -(linesegB.X - linesegA.X) / (linesegB.Y - linesegA.Y);
+                intersection = new Vector2(pointA.X, Math.Clamp(antislope * (pointA.X - point.X) + point.Y, Math.Min(pointA.Y, pointB.Y), Math.Max(pointA.Y, pointB.Y)));
+                
+                progress = (intersection.Y - pointA.Y) / (pointB.Y - pointA.Y);
+            }
+            //if normal rapsule line
+            else
+            {
+                //Pick tangent lineseg to use for calc
+                float slope = (pointB.Y - pointA.Y) / (pointB.X - pointA.X);
+                LineSegment lineseg = point.Y < slope * (point.X - pointA.X) + pointA.Y == point.Y <
+                    (r1 > 0 ? slope * (lines[0].PointA.X - pointA.X) + pointA.Y : slope * (lines[0].PointB.X - pointA.X) + pointA.Y) ? lines[0] : lines[1];
+                Vector2 linesegA = lineseg.PointA;
+                Vector2 linesegB = lineseg.PointB;
 
-            float progress = (xIntersect - pointA.X) / (pointB.X - pointA.X);
+                //if tangent line is horizontal
+                if(linesegA.Y == linesegB.Y)
+                {
+                    float xIntersect = Math.Clamp(point.X, Math.Min(pointA.X, pointB.X), Math.Max(pointA.X, pointB.X));
+                    intersection = new Vector2(xIntersect, slope * (xIntersect - pointA.X) + pointA.Y);
+                    progress = (xIntersect - pointA.X) / (pointB.X - pointA.X);
+                }
+                //if normal tangent line
+                else
+                {
+                    float antislope = -(linesegB.X - linesegA.X) / (linesegB.Y - linesegA.Y);
+                    float xIntersect = Math.Clamp((slope * pointA.X - antislope * point.X + point.Y - pointA.Y) / (slope - antislope), 
+                        Math.Min(pointA.X, pointB.X), Math.Max(pointA.X, pointB.X));
+                    intersection = new Vector2(xIntersect, slope * (xIntersect - pointA.X) + pointA.Y);
+                    progress = (xIntersect - pointA.X) / (pointB.X - pointA.X);
+                }
+            }
+
             float radius = r1 + progress * (r2 - r1);
-            return Math.Pow(point.X - xIntersect, 2) + Math.Pow(point.Y - yIntersect, 2) <= (radius + circle.Radius) * (radius + circle.Radius);
+            return Vector2.DistanceSquared(point, intersection) <= (radius + circle.Radius) * (radius + circle.Radius);
         }
 
         /// <summary>

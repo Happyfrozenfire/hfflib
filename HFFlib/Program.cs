@@ -240,7 +240,7 @@ namespace HFFlib
             Raylib.DrawLine((int)Math.Round(middle2.PointA.X), (int)Math.Round(middle2.PointA.Y),
                 (int)Math.Round(middle2.PointB.X), (int)Math.Round(middle2.PointB.Y), c2);*/
 
-            Raylib.DrawFPS(10, 10);
+            Raylib.DrawFPS(10, 10); 
             Raylib.EndDrawing();
         }
     }
