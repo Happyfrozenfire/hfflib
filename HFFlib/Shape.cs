@@ -1091,9 +1091,10 @@ namespace HFFlib
             LineSegment[] lines = this.GetLines();
 
             //If rapsule line is vertical
-            if(pointA.X == pointB.X)
+            if (pointA.X == pointB.X)
             {
                 //Pick tangent lineseg to use for calc
+                //if circle x > rapsule x, it's to the right, so we pick the right lineseg
                 LineSegment lineseg = point.X > pointA.X == (r1 > 0 ? lines[0].PointA.X : lines[0].PointB.X) > pointA.X ? lines[0] : lines[1];
                 Vector2 linesegA = lineseg.PointA;
                 Vector2 linesegB = lineseg.PointB;
@@ -1101,7 +1102,7 @@ namespace HFFlib
                 //tangent line cannot be horizontal, since by definition if tangent line is perpendicular to rapsule line, one circle contains the other
                 float antislope = -(linesegB.X - linesegA.X) / (linesegB.Y - linesegA.Y);
                 intersection = new Vector2(pointA.X, Math.Clamp(antislope * (pointA.X - point.X) + point.Y, Math.Min(pointA.Y, pointB.Y), Math.Max(pointA.Y, pointB.Y)));
-                
+
                 progress = (intersection.Y - pointA.Y) / (pointB.Y - pointA.Y);
             }
             //if normal rapsule line
@@ -1109,13 +1110,19 @@ namespace HFFlib
             {
                 //Pick tangent lineseg to use for calc
                 float slope = (pointB.Y - pointA.Y) / (pointB.X - pointA.X);
-                LineSegment lineseg = point.Y < slope * (point.X - pointA.X) + pointA.Y == point.Y <
-                    (r1 > 0 ? slope * (lines[0].PointA.X - pointA.X) + pointA.Y : slope * (lines[0].PointB.X - pointA.X) + pointA.Y) ? lines[0] : lines[1];
+
+                //if circle Y < rapsule function of circle X, it's above
+                bool pointAbove = point.Y < slope * (point.X - pointA.X) + pointA.Y;
+                //if lines[0] Y < rapsule function of lines[0] X, it's above
+                //note that we do the whole A/B shenanigans because if r1 == 0, lines[0].PointA will equal pointA
+                bool linesegAbove = lines[0].PointA.Y < (r1 > 0 ? slope * (lines[0].PointA.X - pointA.X) + pointA.Y : slope * (lines[0].PointB.X - pointA.X) + pointA.Y);
+                //if point above, pick above lineseg. EQ operator works for this.
+                LineSegment lineseg = pointAbove == linesegAbove ? lines[0] : lines[1];
                 Vector2 linesegA = lineseg.PointA;
                 Vector2 linesegB = lineseg.PointB;
 
                 //if tangent line is horizontal
-                if(linesegA.Y == linesegB.Y)
+                if (linesegA.Y == linesegB.Y)
                 {
                     float xIntersect = Math.Clamp(point.X, Math.Min(pointA.X, pointB.X), Math.Max(pointA.X, pointB.X));
                     intersection = new Vector2(xIntersect, slope * (xIntersect - pointA.X) + pointA.Y);
@@ -1125,7 +1132,7 @@ namespace HFFlib
                 else
                 {
                     float antislope = -(linesegB.X - linesegA.X) / (linesegB.Y - linesegA.Y);
-                    float xIntersect = Math.Clamp((slope * pointA.X - antislope * point.X + point.Y - pointA.Y) / (slope - antislope), 
+                    float xIntersect = Math.Clamp((slope * pointA.X - antislope * point.X + point.Y - pointA.Y) / (slope - antislope),
                         Math.Min(pointA.X, pointB.X), Math.Max(pointA.X, pointB.X));
                     intersection = new Vector2(xIntersect, slope * (xIntersect - pointA.X) + pointA.Y);
                     progress = (xIntersect - pointA.X) / (pointB.X - pointA.X);
