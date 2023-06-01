@@ -767,6 +767,7 @@ namespace HFFlib
     }
 
     [Serializable]
+    [Obsolete("Capsule is deprecated, please use Dynrapsule instead")]
     public struct Capsule : IShape, ISerializable
     {
         private LineSegment line;
@@ -908,6 +909,9 @@ namespace HFFlib
         }
     }
 
+    /// <summary>
+    /// A line segment with two radii. Used for interpolating circles.
+    /// </summary>
     [Serializable]
     public struct Dynrapsule : IShape, ISerializable
     {
@@ -945,7 +949,13 @@ namespace HFFlib
 
         public LineSegment Line => line;
 
+        /// <summary>
+        /// The radius associated with Line.PointA
+        /// </summary>
         public float R1 => r1;
+        /// <summary>
+        /// The radius associated with Line.PointB
+        /// </summary>
         public float R2 => r2;
 
         public Rectangle Bounds
